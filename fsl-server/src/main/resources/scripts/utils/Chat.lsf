@@ -54,7 +54,7 @@ seekLastMessageInFullChat = ACTION ABSTRACT ();
 
 author 'Автор' = DATA CustomUser (Message);
 nameAutor 'Автор' (Message message) = name(author(message)) MAXCHARWIDTH 30 PREFCHARWIDTH 30;
-text 'Текст' = DATA TEXT (Message) MINCHARWIDTH 50;
+text 'Текст' = DATA TEXT (Message);
 dateTime 'Время' = DATA DATETIME (Message) MAXCHARWIDTH 30 PREFCHARWIDTH 30;
 push 'Push' = DATA BOOLEAN (Message);
 status 'Статус' = DATA MessageStatus (Message, CustomUser);
@@ -155,7 +155,6 @@ FORM fullChat 'Чат'
     
     EVENTS ON INIT markSeenOnChange(c)
     EVENTS ON CHANGE c markSeenOnChange(c)
-    EVENTS ON CLOSE markSeenOnChange(c)
 
     OBJECTS u = CustomUser
     PROPERTIES(u) name, unreadMessages BACKGROUND backgroundUnread(u) 
@@ -180,7 +179,7 @@ FORM fullChat 'Чат'
 DESIGN fullChat {
     main {
         NEW topMain {
-            type = SPLITH;
+            type = CONTAINERH;
             fill = 1;
             NEW left {
                 fill = 0.3;
@@ -197,29 +196,19 @@ DESIGN fullChat {
                 
             }
             NEW right {
-                type = SPLITV;
                 fill = 0.7;
-                MOVE m.box { 
-                    fill = 0.8; 
-                    PROPERTY(text(m)) {
-                        minimumWidth = 300;
-                    }                       
-                }
-                            
-                NEW bottom {   
-                    fill = 0.2; 
-                    type = CONTAINERV;
-                    MOVE PROPERTY(newMessage(c)) {
-                        fill = 1; 
-                        panelCaptionAbove = TRUE;
-                    }           
-                    MOVE PROPERTY(sendMessage(c, u)) {
-                        font = 'bold 24';
-                    }
+                MOVE m.box { fill = 0.8; }
+                MOVE PROPERTY(newMessage(c)) {
+                    panelCaptionAbove = TRUE;
+                    fill = 0.2;
+                };             
+                NEW sendBox {
+                    type = CONTAINERH;
+                    MOVE PROPERTY(sendMessage(c, u));
                 }
             }            
         }
-        MOVE functions.box;
+        REMOVE functions.box;
     }           
 }
 
@@ -274,8 +263,7 @@ markSeenOnChange(Chat c) += ACTION {
 };
 
 closeChat 'Закрыть' = ACTION { 
-    markSeenMessages(currentUser());
-    apply(); 
+    markSeenMessages(currentUser()); 
     formClose();
 }
 
@@ -294,13 +282,12 @@ replyChat 'Ответить' (Message m) = ACTION {
 openChat 'Перейти в чат' (Chat c, Message m) = ACTION {
     markSeenMessages(currentUser());
     FORM fullChat DOCKED;
-    NEWSESSION { NEWTHREAD {
+    NEWTHREAD {
         ACTIVATE TAB recent FORM fullChat;
         SEEK fullChat.c chat(m);
         SEEK LAST fullChat.m NULL;
         newMessage(c) <-reply(m);
-    } CONNECTION currentConnection(); }
-    APPLY NESTED newMessage[Chat], reply[Message] {};
+    } CONNECTION currentConnection();
     formClose();
 };
 
@@ -347,7 +334,7 @@ pushAction() = ACTION {
             SEEK LAST shortChat.m NULL;
         } 
         ELSE {
-            NEWSESSION {
+            NEWSESSION NOCLOSE {
                 FORM shortChat MODAL;
             }
         }
@@ -360,7 +347,7 @@ seekLastMessageInFullChat() += ACTION {
 
 pushNotification (CustomUser user) += ACTION {
     FOR user(Connection conn) == user AND connectionStatus(conn) == ConnectionStatus.connectedConnection DO {
-        NEWSESSION { NEWTHREAD pushAction() CONNECTION conn; }
+        NEWTHREAD pushAction() CONNECTION conn;
     }    
 };
 
