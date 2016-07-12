@@ -22,7 +22,21 @@ name 'Имя' (Chat chat) = (OVERRIDE [=GROUP CONCAT name(CustomUser user), ',' 
 setInChat(Chat chat) = ACTION {
     FOR(name(User u)) DO {
         in(chat, u) <- TRUE;
+        IF NOT login(u)=='admin' THEN
+            readonly(chat, u) <- TRUE;
     }
+}
+
+onStarted() += ACTION {
+    LOCAL systemChat = Chat();
+    systemChat() <- chat('system');
+    IF NOT systemChat() THEN {
+        ADDOBJ Chat;
+        systemChat() <- addedObject();
+        id(c) <- 'system';
+        dataName(c) <- 'System Chat';   
+    }
+    setInChat(systemChat());
 }
 
 CLASS MessageStatus {
@@ -37,19 +51,17 @@ TABLE messageCustomUser(Message, CustomUser);
 
 pushNotification 'Отправить уведомление пользователю' = ACTION ABSTRACT (CustomUser);
 seekLastMessageInFullChat = ACTION ABSTRACT ();
-markSeenOnChange = ACTION ABSTRACT (Chat);
 
 author 'Автор' = DATA CustomUser (Message);
-nameAuthor 'Автор' (Message message) = name(author(message)) MAXCHARWIDTH 30 PREFCHARWIDTH 30;
+nameAutor 'Автор' (Message message) = name(author(message)) MAXCHARWIDTH 30 PREFCHARWIDTH 30;
 text 'Текст' = DATA TEXT (Message) MINCHARWIDTH 50;
 dateTime 'Время' = DATA DATETIME (Message) MAXCHARWIDTH 30 PREFCHARWIDTH 30;
-system 'Системное' = DATA BOOLEAN (Message);
+push 'Push' = DATA BOOLEAN (Message);
 status 'Статус' = DATA MessageStatus (Message, CustomUser);
 captionStatus 'Статус' (Message message, CustomUser user) = staticCaption(status(message, user));
 captionStatus 'Статус' (Message message) = captionStatus(message, currentUser());
 chat = DATA Chat (Message);
-nameChat 'Чат' (Message message) = name(chat(message)) MINCHARWIDTH 30 PREFCHARWIDTH 30;
-nameShortChat 'Чат' (Message message) = nameChat(message) + ' [' + nameAuthor(message) + ']' MINCHARWIDTH 15 PREFCHARWIDTH 30;
+nameChat 'Чат' (Message message) = name(chat(message)) MINCHARWIDTH 15 PREFCHARWIDTH 30;
 
 readonly (Message message) = readonly(chat(message));
 editable (Message message) = NOT readonly(message);
@@ -66,31 +78,15 @@ defaultNewMessage 'Новое сообщение' = DATA LOCAL TEXT ();
 chatNewMessage 'Новое сообщение' = DATA LOCAL TEXT (Chat);
 newMessage 'Новое сообщение' (Chat chat) = DATA LOCAL TEXT (Chat);
 
-onStarted() += ACTION {
-    LOCAL systemChat = Chat();
-    systemChat() <- chat('system');
-    IF NOT systemChat() THEN {
-        ADDOBJ Chat;
-        systemChat() <- addedObject();
-        id(c) <- 'system';
-        dataName(c) <- 'Все'; 
-    }
-    setInChat(systemChat());
-    
-    FOR system(Message m) DO {
-        status(m, CustomUser u) <- MessageStatus.seen;
-    }
-}
-
 setSeenMessageUser(Message m, CustomUser user) = ACTION {
     status(m, user) <- MessageStatus.seen;
 }
-sendMessage 'Написать в чат' (Chat chat, TEXT message, BOOLEAN system) = ACTION {
+sendMessage 'Написать в чат' (Chat chat, TEXT message) = ACTION {
     FOR ADDOBJ m = Message DO {
         chat(m) <- chat;
         dateTime(m) <- currentDateTime();
         author(m) <- currentUser();
-        system(m) <- system;
+        push(m) <- TRUE;
         text(m) <- message;
         IF chatNotFound() THEN
             defaultNewMessage() <- NULL
@@ -100,22 +96,14 @@ sendMessage 'Написать в чат' (Chat chat, TEXT message, BOOLEAN syste
         setSeenMessageUser(m, currentUser());
         FOR in(chat, CustomUser user) AND user != currentUser() DO {
             status(m, user) <- MessageStatus.sent;
+            pushNotification(user);
         }            
     }
     APPLY NESTED defaultNewMessage[], chatNewMessage[Chat] {};
-    
-    FOR in(chat, CustomUser user) AND user != currentUser() DO {
-        pushNotification(user);
-    }            
-    
-    markSeenOnChange(chat);
+    seekLastMessageInFullChat();
 }
 
 sendMessage 'Отправить' = ACTION ABSTRACT LIST (Chat, CustomUser) EDITKEY 'F3';
-
-restartServer() += ACTION { sendMessage(chat('system'), 'Сервер будет остановлен через 5 минут!\nСохраните текущую работу и выйдите из приложения.', TRUE); }
-
-cancelRestartServer() += ACTION { sendMessage(chat('system'), 'Остановка сервера отменена', TRUE); }
 
 seekChat = ACTION ABSTRACT(CustomUser);
   
@@ -151,12 +139,13 @@ editChatAction 'Редактировать' () = ACTION {
 
 recentVisible  = ABSTRACT BOOLEAN ();
 readonlyFullChat(Chat chat) = readonly(chat) AND recentVisible();
+markSeenOnChange = ACTION ABSTRACT (Chat);
 prevUser() = DATA LOCAL CustomUser();
 
 backgroundUnread 'Цвет' (Chat chat) = RGB(255, 0, 0) IF unreadMessages(chat);
 backgroundUnread 'Цвет' (CustomUser user) = RGB(255, 0, 0) IF unreadMessages(user);
 
-backgroundMessage (Message m) = IF NOT own(m) THEN RGB(255, 255, 255) ELSE IF seenCount(m) < 2 THEN RGB(226, 231, 235) ELSE RGB(240, 244, 248);
+backgroundMessage (Message m) = IF NOT own(m) THEN RGB(200, 244, 248) ELSE IF seenCount(m) < 2 THEN RGB(220, 244, 248) ELSE RGB(240, 244, 248);
 
 FORM fullChat 'Чат'
     OBJECTS c = Chat
@@ -179,7 +168,7 @@ FORM fullChat 'Чат'
     PROPERTIES(c, u) FORCE PANEL sendMessage
     
     OBJECTS m = Message LAST
-    PROPERTIES(m) READONLY BACKGROUND backgroundMessage(m) nameAuthor, text, dateTime
+    PROPERTIES(m) READONLY BACKGROUND backgroundMessage(m) nameAutor, text, dateTime
         
     FILTERS in(c), chat(m) == c AND (NOT chatNotFound() OR recentVisible()), status(m, currentUser())
     
@@ -236,7 +225,7 @@ DESIGN fullChat {
 
 sendMessage 'Написать в чат' (Chat chat) = ACTION {
     IF newMessage(chat) THEN
-        sendMessage(chat, newMessage(chat), NULL);
+        sendMessage(chat, newMessage(chat));
 }
 
 sendMessage 'Написать пользователю' (CustomUser user) = ACTION {
@@ -284,11 +273,6 @@ markSeenOnChange(Chat c) += ACTION {
     seekLastMessageInFullChat();
 };
 
-markSeenOnChange(Message m) = ACTION { 
-    markSeenOnChangeMessages(chat(m), currentUser());
-};
-
-
 closeChat 'Закрыть' = ACTION { 
     markSeenMessages(currentUser());
     apply(); 
@@ -296,13 +280,11 @@ closeChat 'Закрыть' = ACTION {
 }
 
 reply 'Ответ' = DATA LOCAL TEXT (Message);
-replyChat 'Ответить' (Chat c, Message m) = ACTION {
-    IF(reply(m)) THEN {
-        markSeenMessages(currentUser());
-        newMessage(c) <- reply(m);
-        sendMessage(chat(m));
-        formClose();
-    }
+replyChat 'Ответить' (Chat c, Message m) = ACTION { 
+    markSeenMessages(currentUser());
+    newMessage(c) <- reply(m);
+    sendMessage(chat(m));
+    formClose();
 };
 
 replyChat 'Ответить' (Message m) = ACTION { 
@@ -328,21 +310,17 @@ openChat 'Перейти в чат' (Message m) = ACTION {
 
 FORM shortChat 'Новое сообщение' DOCKEDMODAL
 OBJECTS m = Message LAST
-PROPERTIES(m) READONLY nameShortChat, text, dateTime
+PROPERTIES(m) READONLY nameChat, text, dateTime
 PROPERTIES(m) FORCE PANEL reply READONLYIF readonly(m), replyChat SHOWIF editable(m), openChat
 PROPERTIES() closeChat
 FILTERS in(chat(m)), status(m, currentUser()), status(m, currentUser()) != MessageStatus.seen
-EVENTS ON CLOSE markSeenOnChange(m)
 ;
 
 DESIGN shortChat {
     main {
-        m.box {
-            fill = 0.7;
-        }
         MOVE PROPERTY(reply(m)) {
             panelCaptionAbove = TRUE;   
-            fill = 0.3;
+            fill = 1;
         }
         NEW buttons {
             type = CONTAINERH;

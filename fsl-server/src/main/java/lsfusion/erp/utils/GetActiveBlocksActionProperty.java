@@ -41,7 +41,9 @@ public class GetActiveBlocksActionProperty extends ScriptingActionProperty {
 
             getActiveBlocksFromDatabase(context);
 
-        } catch (SQLHandledException | ScriptingErrorLog.SemanticErrorException e) {
+        } catch (SQLHandledException e) {
+            throw Throwables.propagate(e);
+        } catch (ScriptingErrorLog.SemanticErrorException e) {
             throw Throwables.propagate(e);
         }
 

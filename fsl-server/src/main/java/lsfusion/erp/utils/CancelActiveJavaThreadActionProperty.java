@@ -29,7 +29,9 @@ public class CancelActiveJavaThreadActionProperty extends ScriptingActionPropert
 
         try {
             getActiveThreadsFromDatabase(context);
-        } catch (ScriptingErrorLog.SemanticErrorException | SQLHandledException e) {
+        } catch (ScriptingErrorLog.SemanticErrorException e) {
+            throw Throwables.propagate(e);
+        } catch (SQLHandledException e) {
             throw Throwables.propagate(e);
         }
 

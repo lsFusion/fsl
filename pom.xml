@@ -11,7 +11,7 @@
 
     <groupId>lsfusion.fsl</groupId>
     <artifactId>fsl</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>1.2.2</version>
     <packaging>pom</packaging>
     <name>Fusion Standard Library</name>
     
@@ -21,7 +21,7 @@
     </modules>
 
     <scm>
-        <developerConnection>scm:svn:svn://server/lsfusion/fsl/branches/fsl-RC</developerConnection>
+        <developerConnection>scm:svn:svn://server/lsfusion/fsl/tags/fsl-1.2.2</developerConnection>
     </scm>
 
     <build>
