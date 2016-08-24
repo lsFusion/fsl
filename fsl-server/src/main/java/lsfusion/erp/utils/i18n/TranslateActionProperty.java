@@ -10,8 +10,10 @@ import lsfusion.server.logics.scripted.ScriptingErrorLog;
 import lsfusion.server.logics.scripted.ScriptingLogicsModule;
 import lsfusion.server.session.DataSession;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -76,7 +78,8 @@ public class TranslateActionProperty extends ScriptingActionProperty {
                 }
             }
 
-        } catch (ScriptingErrorLog.SemanticErrorException | IOException ignored) {
+        } catch (ScriptingErrorLog.SemanticErrorException | MalformedURLException ignored) {
+        } catch (IOException ignored) {
         }
 
     }
