@@ -209,14 +209,14 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
                 return dateTime == null ? NullValue.instance : new DataObject(dateTime, DateTimeClass.instance);
             case "isActiveSQLProcess":
                 Boolean isActive = (Boolean) sqlProcess.get(7);
-                return DataObject.create(isActive != null && isActive);
+                return isActive == null || !isActive ? NullValue.instance : new DataObject(true);
             case "inTransactionSQLProcess":
                 Boolean fusionInTransaction = (Boolean) sqlProcess.get(8);
                 Boolean baseInTransaction = (Boolean) sqlProcess.get(9);
                 if(baseInTransaction != null && fusionInTransaction != null && fusionInTransaction)
                     ServerLoggers.assertLog(baseInTransaction.equals(true), "FUSION AND BASE INTRANSACTION DIFFERS");
                 Boolean inTransaction = baseInTransaction != null ? baseInTransaction : fusionInTransaction;
-                return DataObject.create(inTransaction);
+                return !inTransaction ? NullValue.instance : new DataObject(true);
             case "startTransactionSQLProcess":
                 Long startTransaction = (Long) sqlProcess.get(10);
                 return startTransaction == null ? NullValue.instance : new DataObject(new Timestamp(startTransaction), DateTimeClass.instance);
@@ -237,7 +237,7 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
                 return idSQLProcess == null ? NullValue.instance : new DataObject(idSQLProcess);
             case "isDisabledNestLoopProcess":
                 Boolean isDisabledNestLoop = (Boolean) sqlProcess.get(16);
-                return DataObject.create(isDisabledNestLoop != null && isDisabledNestLoop);
+                return isDisabledNestLoop == null || !isDisabledNestLoop ? NullValue.instance : new DataObject(true);
             case "queryTimeoutProcess":
                 Integer queryTimeoutProcess = (Integer) sqlProcess.get(17);
                 return queryTimeoutProcess == null ? NullValue.instance : new DataObject(queryTimeoutProcess);

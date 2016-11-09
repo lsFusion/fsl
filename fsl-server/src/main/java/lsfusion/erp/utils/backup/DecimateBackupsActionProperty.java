@@ -74,6 +74,8 @@ public class DecimateBackupsActionProperty extends ScriptingActionProperty {
 
             session.apply(context);
 
+            findAction("formRefresh[]").execute(context);
+
         } catch (Exception e) {
             throw Throwables.propagate(e);
         }

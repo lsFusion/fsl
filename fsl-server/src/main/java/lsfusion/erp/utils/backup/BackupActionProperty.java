@@ -74,6 +74,7 @@ public class BackupActionProperty extends ScriptingActionProperty {
                 findProperty("backupFilePath[]").change(backupFilePath, context.getSession());
                 findProperty("backupFileName[]").change(backupFileName + backupFileExtension, context.getSession());
 
+                findAction("formRefresh[]").execute(context);
             }
         } catch (Exception e) {
             throw Throwables.propagate(e);
