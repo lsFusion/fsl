@@ -5,6 +5,7 @@ REQUIRE System;
 getActiveJavaThreadsAction 'Обновить список java-потоков' = CUSTOM 'lsfusion.erp.utils.GetActiveJavaThreadsActionProperty' () TOOLBAR;  
 cancelActiveJavaThreadAction 'Остановить java-поток' = CUSTOM 'lsfusion.erp.utils.CancelActiveJavaThreadActionProperty' (INTEGER);  
 
+previousCountActiveJavaThread =  DATA LOCAL INTEGER();
 idActiveJavaThread 'ID java-потока' = DATA LOCAL INTEGER (INTEGER);
 stackTraceActiveJavaThread 'След java-потока' = DATA LOCAL TEXT (INTEGER);
 nameActiveJavaThread 'Имя java-потока' = DATA LOCAL VARSTRING[100] (INTEGER);

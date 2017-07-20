@@ -25,20 +25,17 @@ import java.util.regex.Pattern;
 
 public class ListFilesActionProperty extends ScriptingActionProperty {
     private final ClassPropertyInterface pathInterface;
-    private final ClassPropertyInterface charsetInterface;
 
     public ListFilesActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
 
         Iterator<ClassPropertyInterface> i = interfaces.iterator();
         pathInterface = i.next();
-        charsetInterface = i.next();
     }
 
     public void executeCustom(ExecutionContext<ClassPropertyInterface> context) throws SQLException, SQLHandledException {
 
         String path = (String) context.getDataKeyValue(pathInterface).object;
-        String charset = (String) context.getDataKeyValue(charsetInterface).object;
 
         try {
             if (path != null) {
@@ -52,7 +49,7 @@ public class ListFilesActionProperty extends ScriptingActionProperty {
                     if (type.equals("file")) {
                         filesList = getFilesList(url);
                     } else if (type.equals("ftp")) {
-                        filesList = getFTPFilesList(path, charset);
+                        filesList = getFTPFilesList(path);
                     }
                     if (filesList != null) {
 
@@ -93,7 +90,7 @@ public class ListFilesActionProperty extends ScriptingActionProperty {
         return result;
     }
 
-    private Map<String, Boolean> getFTPFilesList(String path, String charset) throws IOException {
+    private Map<String, Boolean> getFTPFilesList(String path) throws IOException {
         //*ftp://username:password@host:port/path*//*
         Pattern connectionStringPattern = Pattern.compile("ftp:\\/\\/(.*):(.*)@([^\\/:]*)(?::([^\\/]*))?(?:\\/(.*))?");
         Matcher connectionStringMatcher = connectionStringPattern.matcher(path);
@@ -102,12 +99,12 @@ public class ListFilesActionProperty extends ScriptingActionProperty {
             String password = connectionStringMatcher.group(2); //12345
             String server = connectionStringMatcher.group(3); //ftp.harmony.neolocation.net
             boolean noPort = connectionStringMatcher.groupCount() == 4;
-            Integer port = noPort || connectionStringMatcher.group(4) == null ? 21 : Integer.parseInt(connectionStringMatcher.group(4)); //21
+            Integer port = noPort ? 21 : Integer.parseInt(connectionStringMatcher.group(4)); //21
             String remotePath = connectionStringMatcher.group(noPort ? 4 : 5);
             FTPClient ftpClient = new FTPClient();
             try {
                 ftpClient.setConnectTimeout(60000); //1 minute = 60 sec
-                ftpClient.setControlEncoding(charset);
+                ftpClient.setControlEncoding("UTF-8");
                 ftpClient.connect(server, port);
                 ftpClient.login(username, password);
                 ftpClient.enterLocalPassiveMode();

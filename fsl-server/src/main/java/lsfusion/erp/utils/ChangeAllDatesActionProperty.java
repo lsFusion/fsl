@@ -36,7 +36,7 @@ public class ChangeAllDatesActionProperty extends ScriptingActionProperty {
         DataSession session = context.createSession();
         try {
 
-            session.sql.pushNoReadOnly();
+            session.sql.pushNoReadOnly(session.sql.getConnection().sql);
 
             Integer seconds = (Integer) findProperty("secondsChangeAllDates").read(session);
             if (seconds != null) {
@@ -112,7 +112,7 @@ public class ChangeAllDatesActionProperty extends ScriptingActionProperty {
         } catch (ScriptingErrorLog.SemanticErrorException e) {
             e.printStackTrace();
         } finally {
-            session.sql.popNoReadOnly();
+            session.sql.popNoReadOnly(session.sql.getConnection().sql);
         }
     }
 }

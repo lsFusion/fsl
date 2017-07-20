@@ -19,7 +19,6 @@ import lsfusion.server.data.query.StaticExecuteEnvironmentImpl;
 import lsfusion.server.data.type.ParseInterface;
 import lsfusion.server.data.type.Reader;
 import lsfusion.server.logics.DataObject;
-import lsfusion.server.logics.property.DataProperty;
 import lsfusion.server.logics.property.ExecutionContext;
 import lsfusion.server.logics.scripted.ScriptingActionProperty;
 import lsfusion.server.logics.scripted.ScriptingErrorLog;
@@ -30,21 +29,27 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Map;
 
-abstract class GetTasksActionProperty extends ScriptingActionProperty {
+public abstract class GetTasksActionProperty extends ScriptingActionProperty {
 
-    GetTasksActionProperty(ScriptingLogicsModule LM) {
+    public GetTasksActionProperty(ScriptingLogicsModule LM) {
         super(LM);
     }
 
-    void getTasksFromDatabase(ExecutionContext context, boolean onlyActive) throws SQLException, SQLHandledException, ScriptingErrorLog.SemanticErrorException {
+    protected void getTasksFromDatabase(ExecutionContext context, boolean onlyActive) throws SQLException, SQLHandledException, ScriptingErrorLog.SemanticErrorException {
 
         DataSession session = context.getSession();
 
-        session.dropChanges((DataProperty) findProperty("idActiveTask[INTEGER]").property);
-        session.dropChanges((DataProperty) findProperty("queryActiveTask[INTEGER]").property);
-        session.dropChanges((DataProperty) findProperty("userActiveTask[INTEGER]").property);
-        session.dropChanges((DataProperty) findProperty("addressUserActiveTask[INTEGER]").property);
-        session.dropChanges((DataProperty) findProperty("dateTimeActiveTask[INTEGER]").property);
+        Integer previousCount = (Integer) findProperty("previousCountActiveTask[]").read(session);
+        previousCount = previousCount == null ? 0 : previousCount;
+
+        for (int i = 0; i < previousCount; i++) {
+            DataObject currentObject = new DataObject(i);
+            findProperty("idActiveTask[INTEGER]").change((Object) null, session, currentObject);
+            findProperty("queryActiveTask[INTEGER]").change((Object) null, session, currentObject);
+            findProperty("userActiveTask[INTEGER]").change((Object) null, session, currentObject);
+            findProperty("addressUserActiveTask[INTEGER]").change((Object) null, session, currentObject);
+            findProperty("dateTimeActiveTask[INTEGER]").change((Object) null, session, currentObject);
+        }
 
         SQLSyntaxType syntaxType = context.getDbManager().getAdapter().getSyntaxType();
 
@@ -105,6 +110,7 @@ abstract class GetTasksActionProperty extends ScriptingActionProperty {
                     i++;
                 }
             }
+            findProperty("previousCountActiveTask[]").change(i, session);
 
         } else if (syntaxType == SQLSyntaxType.POSTGRES) {
 
@@ -171,6 +177,7 @@ abstract class GetTasksActionProperty extends ScriptingActionProperty {
                     i++;
                 }
             }
+            findProperty("previousCountActiveTask[]").change(i, session);
         }
     }
 

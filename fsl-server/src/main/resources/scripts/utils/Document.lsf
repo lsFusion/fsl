@@ -367,7 +367,7 @@ closeDocuments = ABSTRACT LIST (DATE);
 documentsClosedDate 'Дата закрытия документов' = DATA DATE();
  
 dialogCloseDocumentsDate 'Закрыть документы'() = {
-    DIALOG dialogDate OBJECTS d = documentsClosedDate() INPUT DO {
+    DIALOG dialogDate OBJECTS d = documentsClosedDate() NULL INPUT DO {
         documentsClosedDate() <- d;
         closeDocuments(d);
         apply();
@@ -785,10 +785,10 @@ END
 
 // -- Price
 META defineDocumentDetailPriceCustomPrefix (detail, prefix, caption)
-    prefix###price 'Цена'###caption = DATA NUMERIC[16,4] (###detail);
+    prefix###price 'Цена'###caption = DATA NUMERIC[16,4] (###detail) @@denomination;
 END
 META defineDocumentAbstractDetailPriceCustomPrefix (detail, prefix, caption)
-    prefix###price 'Цена'###caption = ABSTRACT NUMERIC[16,4] (###detail) MATERIALIZED;
+    prefix###price 'Цена'###caption = ABSTRACT NUMERIC[16,4] (###detail) MATERIALIZED @@denomination;
 END
 META defineDocumentInterfaceDetailPriceCustomPrefix (detail, prefix, caption)
     @defineDocumentAbstractDetailPriceCustomPrefix(detail, prefix, caption);
@@ -864,10 +864,10 @@ END
 
 //--
 META defineDocumentDetailDataSumCustomPrefix (detail, prefix, caption)
-    prefix###sum 'Сумма'###caption = DATA NUMERIC[18,4] (###detail);
+    prefix###sum 'Сумма'###caption = DATA NUMERIC[18,4] (###detail) @@denomination;
 END
 META defineDocumentAbstractDetailDataSumCustomPrefix (detail, prefix, caption)
-    prefix###sum 'Сумма'###caption = ABSTRACT NUMERIC[18,4] (###detail) MATERIALIZED;
+    prefix###sum 'Сумма'###caption = ABSTRACT NUMERIC[18,4] (###detail) MATERIALIZED @@denomination;
 END
 
 META defineDocumentInterfaceDetailDataSumCustomPrefix (detail, prefix, caption)
@@ -888,14 +888,14 @@ META defineDocumentDetailDataSum(object)
 END
 
 META deriveDocumentDetailSumCustomPrefix(detail, prefix, currencyProp, quantityProp)
-    calc###prefix##Sum = ABSTRACT VALUE NUMERIC[18,4] (###detail);
+    calc###prefix##Sum = ABSTRACT VALUE OVERRIDE FIRST NUMERIC[18,4] (###detail);
     calc###prefix##Sum(###detail detail) += NUMERIC[18,4](round(quantityProp(detail) * prefix###price(detail), currencyProp(detail))); 
     prefix###sum (###detail detail) <- calc###prefix##Sum(detail)
                     WHEN DO CHANGED(quantityProp(detail)) OR CHANGED (prefix###price(detail)) OR CHANGED(currencyProp(detail));
 END
 
 META deriveDocumentDetailSumCustomRoundPrefix(detail, prefix, currencyProp, quantityProp, roundProp)
-    calc###prefix##Sum = ABSTRACT VALUE NUMERIC[18,4] (###detail);
+    calc###prefix##Sum = ABSTRACT VALUE OVERRIDE FIRST NUMERIC[18,4] (###detail);
     calc###prefix##Sum(###detail detail) += NUMERIC[18,4](Utils.round(quantityProp(detail) * prefix###price(detail), roundProp(detail))); 
     prefix###sum (###detail detail) <- calc###prefix##Sum(detail)
                     WHEN DO CHANGED(quantityProp(detail)) OR CHANGED (prefix###price(detail)) OR CHANGED(currencyProp(detail));
@@ -989,10 +989,10 @@ META defineDocumentInterfaceDetailMarkupPrefix (object, prefix, caption)
 END
 
 META defineDocumentDetailMarkupSumCustomPrefix (detail, prefix, caption)
-    prefix###markupSum 'Сумма надбавки'###caption = DATA NUMERIC[18,4] (###detail);
+    prefix###markupSum 'Сумма надбавки'###caption = DATA NUMERIC[18,4] (###detail) @@denomination;
 END
 META defineDocumentAbstractDetailMarkupSumCustomPrefix (detail, prefix, caption)
-    prefix###markupSum 'Сумма надбавки'###caption = ABSTRACT NUMERIC[18,4] (###detail) MATERIALIZED;
+    prefix###markupSum 'Сумма надбавки'###caption = ABSTRACT NUMERIC[18,4] (###detail) MATERIALIZED @@denomination;
 END
 META defineDocumentInterfaceDetailMarkupSumCustomPrefix (detail, prefix, caption)
     @defineDocumentAbstractDetailMarkupSumCustomPrefix(detail, prefix, caption);
