@@ -18,7 +18,10 @@ import lsfusion.server.classes.IntegerClass;
 import lsfusion.server.classes.LongClass;
 import lsfusion.server.classes.StringClass;
 import lsfusion.server.context.ThreadLocalContext;
-import lsfusion.server.data.*;
+import lsfusion.server.data.OperationOwner;
+import lsfusion.server.data.SQLHandledException;
+import lsfusion.server.data.SQLSession;
+import lsfusion.server.data.StatusMessage;
 import lsfusion.server.data.expr.KeyExpr;
 import lsfusion.server.data.expr.formula.SQLSyntaxType;
 import lsfusion.server.data.query.Join;
@@ -115,7 +118,7 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
         ImOrderSet<LCP> propsSQL = getProps(findProperties("idThreadProcess[VARSTRING[10]]", "dateTimeCallProcess[VARSTRING[10]]", "querySQLProcess[VARSTRING[10]]", "addressUserSQLProcess[VARSTRING[10]]", "dateTimeSQLProcess[VARSTRING[10]]",
                 "isActiveSQLProcess[VARSTRING[10]]", "inTransactionSQLProcess[VARSTRING[10]]", "startTransactionSQLProcess[VARSTRING[10]]", "attemptCountSQLProcess[VARSTRING[10]]", "statusMessageSQLProcess[VARSTRING[10]]",
                 "computerProcess[VARSTRING[10]]", "userProcess[VARSTRING[10]]", "lockOwnerIdProcess[VARSTRING[10]]", "lockOwnerNameProcess[VARSTRING[10]]", "fullQuerySQLProcess[VARSTRING[10]]", "idSQLProcess[VARSTRING[10]]",
-                "isDisabledNestLoopProcess[VARSTRING[10]]", "queryTimeoutProcess[VARSTRING[10]]", "debugInfoSQLProcess[VARSTRING[10]]"));
+                "isDisabledNestLoopProcess[VARSTRING[10]]", "queryTimeoutProcess[VARSTRING[10]]"));
 
         int rowsJava = writeRows(context, propsJava, javaProcesses, true);
         int rowsSQL = writeRows(context, propsSQL, sqlProcesses, false);
@@ -196,10 +199,10 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
                 String fullQuery = (String) sqlProcess.get(2);
                 return fullQuery == null ? NullValue.instance : new DataObject(fullQuery);
             case "userProcess":
-                Long user = (Long) sqlProcess.get(3);
+                Integer user = (Integer) sqlProcess.get(3);
                 return user == null ? NullValue.instance : new DataObject(user);
             case "computerProcess":
-                Long computer = (Long) sqlProcess.get(4);
+                Integer computer = (Integer) sqlProcess.get(4);
                 return computer == null ? NullValue.instance : new DataObject(computer);
             case "addressUserSQLProcess":
                 String address = (String) sqlProcess.get(5);
@@ -241,9 +244,6 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
             case "queryTimeoutProcess":
                 Integer queryTimeoutProcess = (Integer) sqlProcess.get(17);
                 return queryTimeoutProcess == null ? NullValue.instance : new DataObject(queryTimeoutProcess);
-            case "debugInfoSQLProcess":
-                String debugInfo = (String) sqlProcess.get(18);
-                return debugInfo == null ? NullValue.instance : new DataObject(debugInfo);
             default:
                 return NullValue.instance;
         }
@@ -334,13 +334,18 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
 
             String query = trimToEmpty((String) entry.get("text"));
             if(!query.equals(originalQuery) && (!onlyActive || !query.isEmpty())) {
+                String fullQuery = null;
+                boolean isDisabledNestLoop = false;
+                Integer queryTimeout = null;
                 Integer processId = (Integer) entry.get("session_id");
                 List<Object> sessionThread = sessionThreadMap.get(processId);
-                String fullQuery = sessionThread == null || sessionThread.get(7) == null ? null : (String) sessionThread.get(7);
-                boolean isDisabledNestLoop = sessionThread != null && (boolean) sessionThread.get(8);
-                Integer queryTimeout = sessionThread == null ? null : (Integer) sessionThread.get(9);
-                String debugInfo = sessionThread == null ? null : (String) sessionThread.get(10);
-
+                if (sessionThread != null) {
+                    if (sessionThread.get(7) != null) {
+                        fullQuery = (String) sessionThread.get(7);
+                    }
+                    isDisabledNestLoop = (boolean) sessionThread.get(8);
+                    queryTimeout = (Integer) sessionThread.get(9);
+                }
                 //String userActiveTask = trimToNull((String) entry.get("host_name"));
                 String address = trimToNull((String) entry.get("client_net_address"));
                 Timestamp dateTime = (Timestamp) entry.get("start_time");
@@ -363,7 +368,7 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
 
                 mResultMap.add(resultId, Arrays.asList(query, fullQuery, null, null,
                         address, dateTime, null, null, baseInTransaction, startTransaction, attemptCount, statusMessage,
-                        null, null, processId, isDisabledNestLoop, queryTimeout, debugInfo));
+                        null, null, processId, isDisabledNestLoop, queryTimeout));
             }
         }
         return mResultMap.immutable();
@@ -438,12 +443,11 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
                 Long startTransaction = sessionThread == null ? null : (Long) sessionThread.get(2);
                 String attemptCount = sessionThread == null ? "0" : (String) sessionThread.get(3);
                 StatusMessage statusMessage = sessionThread == null ? null : (StatusMessage) sessionThread.get(4);
-                Long userActiveTask = sessionThread == null ? null : (Long) sessionThread.get(5);
-                Long computerActiveTask = sessionThread == null ? null : (Long) sessionThread.get(6);
+                Integer userActiveTask = sessionThread == null ? null : (Integer) sessionThread.get(5);
+                Integer computerActiveTask = sessionThread == null ? null : (Integer) sessionThread.get(6);
                 String fullQuery = sessionThread == null || sessionThread.get(7) == null ? null : (String) sessionThread.get(7);
                 boolean isDisabledNestLoop = sessionThread != null && (boolean) sessionThread.get(8);
                 Integer queryTimeout = sessionThread == null ? null : (Integer) sessionThread.get(9);
-                String debugInfo = sessionThread == null ? null : (String) sessionThread.get(10);
 
                 List<Object> lockingProcess = lockingMap.get(sqlId);
                 Integer lockingSqlId = lockingProcess == null ? null : (Integer)lockingProcess.get(0);
@@ -464,7 +468,7 @@ public class UpdateProcessMonitorActionProperty extends ScriptingActionProperty 
                 mResultMap.add(resultId, Arrays.asList(javaThread == null ? null : RemoteLoggerAspect.getDateTimeCall(javaThread.getId()),
                         query, fullQuery, userActiveTask, computerActiveTask, address, dateTime,
                         active, state.equals("idle in transaction"), baseInTransaction, startTransaction, attemptCount, statusMessage,
-                        lockOwnerId, lockOwnerName, sqlId, isDisabledNestLoop, queryTimeout, debugInfo));
+                        lockOwnerId, lockOwnerName, sqlId, isDisabledNestLoop, queryTimeout));
             }
         }
         return mResultMap.immutable();

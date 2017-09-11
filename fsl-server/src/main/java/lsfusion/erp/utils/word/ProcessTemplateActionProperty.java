@@ -12,7 +12,6 @@ import lsfusion.server.data.SQLHandledException;
 import lsfusion.server.data.expr.KeyExpr;
 import lsfusion.server.data.query.QueryBuilder;
 import lsfusion.server.logics.DataObject;
-import lsfusion.server.logics.ObjectValue;
 import lsfusion.server.logics.property.ClassPropertyInterface;
 import lsfusion.server.logics.property.ExecutionContext;
 import lsfusion.server.logics.scripted.ScriptingActionProperty;
@@ -51,10 +50,10 @@ public class ProcessTemplateActionProperty extends ScriptingActionProperty {
 
             if (templateObject != null) {
 
-                ObjectValue fileObjectValue = findProperty("file[Template]").readClasses(context, templateObject);
-                if (fileObjectValue instanceof DataObject) {
+                Object fileObject = findProperty("file[Template]").read(context, templateObject);
+                if (fileObject != null) {
 
-                    DataObject wordObject = (DataObject)fileObjectValue;
+                    DataObject wordObject = new DataObject(fileObject, WordClass.get(false, false));
                     List<List<Object>> templateEntriesList = new ArrayList<>();
 
                     KeyExpr templateEntryExpr = new KeyExpr("TemplateEntry");
@@ -79,8 +78,7 @@ public class ProcessTemplateActionProperty extends ScriptingActionProperty {
                             templateEntriesList.add(Arrays.asList((Object) keyTemplateEntry, valueTemplateEntry.replace('\n', '\r'), isTableTemplateEntry));
                     }
 
-                    byte[] fileObject = (byte[]) fileObjectValue.getValue();
-                    boolean isDocx = fileObject.length > 2 && fileObject[0] == 80 && fileObject[1] == 75;
+                    boolean isDocx = ((byte[]) fileObject).length > 2 && ((byte[]) fileObject)[0] == 80 && ((byte[]) fileObject)[1] == 75;
 
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 

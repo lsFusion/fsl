@@ -61,7 +61,7 @@ public class GetActiveJavaThreadsActionProperty extends ScriptingActionProperty 
 
         Map<Long, Thread> threadMap = ThreadUtils.getThreadMap();
         for (ThreadInfo threadInfo : threadsInfo) {
-            long id = threadInfo.getThreadId();
+            int id = (int) threadInfo.getThreadId();
             Thread thread = threadMap.get(id);
             DataObject currentObject = new DataObject(id);
 
