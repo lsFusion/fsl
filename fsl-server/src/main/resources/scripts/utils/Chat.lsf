@@ -438,7 +438,9 @@ deliveredNotificationAction(CustomUser user) += {
     }
 }
 
-closeChat 'Закрыть' = {
+closeChat 'Закрыть' = { 
+    markSeenMessages(currentUser());
+    apply(); 
     formClose();
 }
 
