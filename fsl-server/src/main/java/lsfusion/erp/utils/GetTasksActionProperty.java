@@ -30,8 +30,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Map;
 
-import static lsfusion.base.BaseUtils.trim;
-
 abstract class GetTasksActionProperty extends ScriptingActionProperty {
 
     GetTasksActionProperty(ScriptingLogicsModule LM) {
@@ -48,7 +46,7 @@ abstract class GetTasksActionProperty extends ScriptingActionProperty {
         session.dropChanges((DataProperty) findProperty("addressUserActiveTask[INTEGER]").property);
         session.dropChanges((DataProperty) findProperty("dateTimeActiveTask[INTEGER]").property);
 
-        SQLSyntaxType syntaxType = context.getDbSyntax().getSyntaxType();
+        SQLSyntaxType syntaxType = context.getDbManager().getAdapter().getSyntaxType();
 
         if (syntaxType == SQLSyntaxType.MSSQL) {
             String originalQuery = "Select A.session_id,B.start_time, A.[host_name], A.[login_name], C.client_net_address, text\n" +
@@ -174,5 +172,9 @@ abstract class GetTasksActionProperty extends ScriptingActionProperty {
                 }
             }
         }
+    }
+
+    private String trim(String input) {
+        return input == null ? null : input.trim();
     }
 }

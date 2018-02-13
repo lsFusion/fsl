@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class ChangeAllDatesActionProperty extends ScriptingActionProperty {
 
-    public ChangeAllDatesActionProperty(ScriptingLogicsModule LM) {
+    public ChangeAllDatesActionProperty(ScriptingLogicsModule LM) throws ScriptingErrorLog.SemanticErrorException {
         super(LM);
     }
 

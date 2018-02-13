@@ -3,10 +3,7 @@ package lsfusion.erp.utils.backup;
 import com.google.common.base.Throwables;
 import lsfusion.base.col.MapFact;
 import lsfusion.base.col.SetFact;
-import lsfusion.base.col.interfaces.immutable.ImMap;
-import lsfusion.base.col.interfaces.immutable.ImOrderMap;
-import lsfusion.base.col.interfaces.immutable.ImOrderSet;
-import lsfusion.base.col.interfaces.immutable.ImRevMap;
+import lsfusion.base.col.interfaces.immutable.*;
 import lsfusion.base.col.interfaces.mutable.MExclMap;
 import lsfusion.base.col.interfaces.mutable.mapvalue.GetValue;
 import lsfusion.interop.Compare;
@@ -51,7 +48,7 @@ import static lsfusion.base.BaseUtils.trimToNull;
 public class CustomRestoreActionProperty extends ScriptingActionProperty {
     private final ClassPropertyInterface backupInterface;
 
-    public CustomRestoreActionProperty(ScriptingLogicsModule LM, ValueClass... classes) {
+    public CustomRestoreActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
 
         Iterator<ClassPropertyInterface> i = interfaces.iterator();

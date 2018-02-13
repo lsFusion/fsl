@@ -29,7 +29,7 @@ import java.util.Map;
 public class CalculatePathActionProperty extends DistanceGeoActionProperty {
 
 
-    public CalculatePathActionProperty(ScriptingLogicsModule LM) {
+    public CalculatePathActionProperty(ScriptingLogicsModule LM) throws ScriptingErrorLog.SemanticErrorException {
         super(LM);
     }
 

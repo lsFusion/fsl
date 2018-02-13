@@ -24,7 +24,7 @@ import java.util.Calendar;
 
 public class DecimateBackupsActionProperty extends ScriptingActionProperty {
 
-    public DecimateBackupsActionProperty(ScriptingLogicsModule LM) {
+    public DecimateBackupsActionProperty(ScriptingLogicsModule LM) throws ScriptingErrorLog.SemanticErrorException {
         super(LM);
     }
 

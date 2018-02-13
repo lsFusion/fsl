@@ -7,6 +7,7 @@ import lsfusion.base.col.interfaces.immutable.ImOrderMap;
 import lsfusion.base.col.interfaces.immutable.ImRevMap;
 import lsfusion.interop.Compare;
 import lsfusion.server.classes.ValueClass;
+import lsfusion.server.classes.WordClass;
 import lsfusion.server.data.SQLHandledException;
 import lsfusion.server.data.expr.KeyExpr;
 import lsfusion.server.data.query.QueryBuilder;
@@ -34,7 +35,7 @@ import java.util.List;
 public class ProcessTemplateActionProperty extends ScriptingActionProperty {
     public final ClassPropertyInterface templateInterface;
 
-    public ProcessTemplateActionProperty(ScriptingLogicsModule LM, ValueClass... classes) {
+    public ProcessTemplateActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
 
         Iterator<ClassPropertyInterface> i = interfaces.iterator();

@@ -25,7 +25,7 @@ public class TranslateActionProperty extends ScriptingActionProperty {
     public final ClassPropertyInterface languageFromInterface;
     public final ClassPropertyInterface languageToInterface;
 
-    public TranslateActionProperty(ScriptingLogicsModule LM, ValueClass... classes) {
+    public TranslateActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
 
         Iterator<ClassPropertyInterface> i = interfaces.iterator();

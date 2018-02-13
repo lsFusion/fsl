@@ -6,6 +6,7 @@ import lsfusion.server.data.SQLHandledException;
 import lsfusion.server.logics.property.ClassPropertyInterface;
 import lsfusion.server.logics.property.ExecutionContext;
 import lsfusion.server.logics.scripted.ScriptingActionProperty;
+import lsfusion.server.logics.scripted.ScriptingErrorLog;
 import lsfusion.server.logics.scripted.ScriptingLogicsModule;
 
 import java.sql.SQLException;
@@ -16,7 +17,7 @@ public class WriteToFaxActionProperty extends ScriptingActionProperty {
     private final ClassPropertyInterface faxNumberInterface;
 
 
-    public WriteToFaxActionProperty(ScriptingLogicsModule LM, ValueClass... classes) {
+    public WriteToFaxActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
 
         Iterator<ClassPropertyInterface> i = getOrderInterfaces().iterator();

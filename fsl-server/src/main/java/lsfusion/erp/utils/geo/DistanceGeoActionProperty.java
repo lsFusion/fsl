@@ -6,6 +6,7 @@ import lsfusion.server.classes.ValueClass;
 import lsfusion.server.data.SQLHandledException;
 import lsfusion.server.logics.property.ClassPropertyInterface;
 import lsfusion.server.logics.property.ExecutionContext;
+import lsfusion.server.logics.scripted.ScriptingErrorLog;
 import lsfusion.server.logics.scripted.ScriptingLogicsModule;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,11 +27,11 @@ public class DistanceGeoActionProperty extends GeoActionProperty {
     NetLayer netLayer = null;
     int partSize = 25; //google restriction: max 25 origins and 25 destinations
 
-    public DistanceGeoActionProperty(ScriptingLogicsModule LM) {
+    public DistanceGeoActionProperty(ScriptingLogicsModule LM) throws ScriptingErrorLog.SemanticErrorException {
         super(LM);
     }
 
-    public DistanceGeoActionProperty(ScriptingLogicsModule LM, ValueClass... classes) {
+    public DistanceGeoActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
     }
 

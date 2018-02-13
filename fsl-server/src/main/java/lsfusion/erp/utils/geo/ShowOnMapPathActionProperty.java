@@ -25,7 +25,7 @@ import java.util.Iterator;
 public class ShowOnMapPathActionProperty extends GeoActionProperty {
     private final ClassPropertyInterface mapProviderInterface;
 
-    public ShowOnMapPathActionProperty(ScriptingLogicsModule LM, ValueClass... classes) {
+    public ShowOnMapPathActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
 
         Iterator<ClassPropertyInterface> i = getOrderInterfaces().iterator();

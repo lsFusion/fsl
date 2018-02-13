@@ -20,7 +20,7 @@ public class WriteToPrinterActionProperty extends ScriptingActionProperty {
     private final ClassPropertyInterface printerNameInterface;
 
 
-    public WriteToPrinterActionProperty(ScriptingLogicsModule LM, ValueClass... classes) {
+    public WriteToPrinterActionProperty(ScriptingLogicsModule LM, ValueClass... classes) throws ScriptingErrorLog.SemanticErrorException {
         super(LM, classes);
 
         Iterator<ClassPropertyInterface> i = getOrderInterfaces().iterator();
